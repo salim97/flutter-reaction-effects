@@ -50,6 +50,45 @@ class _ReactionWrapperState extends State<ReactionWrapper>
     super.dispose();
   }
 
+  showReaction(details) {
+    setState(() {
+      _beginOffset = Offset.zero;
+    });
+
+    ReactionAskany.showReactionBox(
+      context,
+      offset: details.globalPosition,
+      boxParamenters: boxParamenters,
+      emotionPicked: _emotion,
+      handlePressed: (Emotions emotion) {
+        _controller.reset();
+
+        if (emotion == _emotion) {
+          setState(() {
+            _emotion = null;
+          });
+
+          if (widget.handlePressed != null) {
+            widget.handlePressed!(_emotion);
+          }
+
+          return;
+        }
+
+        setState(() {
+          _emotion = emotion;
+          _beginOffset = const Offset(.25, -1);
+        });
+
+        _controller.forward();
+
+        if (widget.handlePressed != null) {
+          widget.handlePressed!(_emotion);
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -62,7 +101,12 @@ class _ReactionWrapperState extends State<ReactionWrapper>
           Stack(
             clipBehavior: Clip.none,
             children: [
-              widget.child,
+              GestureDetector(
+                onLongPressDown: (details) {
+                  showReaction(details);
+                },
+                child: widget.child,
+              ),
               Visibility(
                 visible: _emotion != null,
                 child: Positioned(
@@ -104,42 +148,7 @@ class _ReactionWrapperState extends State<ReactionWrapper>
           const SizedBox(width: 4.0),
           GestureDetector(
             onTapDown: (details) {
-              setState(() {
-                _beginOffset = Offset.zero;
-              });
-
-              ReactionAskany.showReactionBox(
-                context,
-                offset: details.globalPosition,
-                boxParamenters: boxParamenters,
-                emotionPicked: _emotion,
-                handlePressed: (Emotions emotion) {
-                  _controller.reset();
-
-                  if (emotion == _emotion) {
-                    setState(() {
-                      _emotion = null;
-                    });
-
-                    if (widget.handlePressed != null) {
-                      widget.handlePressed!(_emotion);
-                    }
-
-                    return;
-                  }
-
-                  setState(() {
-                    _emotion = emotion;
-                    _beginOffset = const Offset(.25, -1);
-                  });
-
-                  _controller.forward();
-
-                  if (widget.handlePressed != null) {
-                    widget.handlePressed!(_emotion);
-                  }
-                },
-              );
+              showReaction(details);
             },
             child: widget.buttonReaction,
           ),
